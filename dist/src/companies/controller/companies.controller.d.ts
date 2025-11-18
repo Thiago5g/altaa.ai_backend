@@ -8,9 +8,9 @@ export declare class CompaniesController {
     create(userId: string, dto: CreateCompanyDto): Promise<{
         name: string;
         id: string;
-        logoUrl: string | null;
         createdAt: Date;
         updatedAt: Date;
+        logoUrl: string | null;
     }>;
     list(userId: string, page?: number, pageSize?: number): Promise<import("../service/companies.service").CompanyListResponse>;
     invite(userId: string, companyId: string, dto: CreateInviteDto): Promise<{
@@ -24,9 +24,9 @@ export declare class CompaniesController {
     update(userId: string, companyId: string, dto: UpdateCompanyDto): Promise<{
         name: string;
         id: string;
-        logoUrl: string | null;
         createdAt: Date;
         updatedAt: Date;
+        logoUrl: string | null;
     }>;
     delete(userId: string, companyId: string): Promise<{
         message: string;
