@@ -78,6 +78,21 @@ export class CompaniesService {
     if (member.role === Role.MEMBER)
       throw new ForbiddenException('Only OWNER/ADMIN can invite');
 
+    // Verificar se já existe convite pendente
+    const existingInvite =
+      await this.companiesRepository.findPendingInviteByEmailAndCompany(
+        dto.email,
+        companyId,
+      );
+
+    // Se existe convite pendente válido, retornar o existente
+    if (existingInvite) {
+      return {
+        inviteId: existingInvite.id,
+        token: 'Invite already exists and is still valid',
+      };
+    }
+
     const token = randomUUID();
     const invite = await this.companiesRepository.createInvite(
       companyId,
@@ -85,6 +100,14 @@ export class CompaniesService {
       dto.role,
       token,
     );
+
+    // TODO: Enviar email com o token de convite
+    console.log(
+      `[EMAIL SIMULATION] Sending invite to ${dto.email} for company ${companyId}`,
+    );
+    console.log(`Invite token: ${invite.token}`);
+    console.log(`Invite expires in 7 days`);
+
     return { inviteId: invite.id, token: invite.token };
   }
 
@@ -200,8 +223,28 @@ export class CompaniesService {
       await this.companiesRepository.findMembershipById(membershipId);
     if (!targetMembership) throw new NotFoundException('Member not found');
 
+    // OWNER nunca pode ser removido
     if (targetMembership.role === Role.OWNER) {
       throw new ForbiddenException('Cannot remove OWNER');
+    }
+
+    // ADMIN não pode remover outro ADMIN (apenas OWNER pode)
+    if (
+      targetMembership.role === Role.ADMIN &&
+      requesterMembership.role !== Role.OWNER
+    ) {
+      throw new ForbiddenException('Only OWNER can remove ADMIN members');
+    }
+
+    // Limpar activeCompanyId se esta era a empresa ativa do usuário
+    const user = await this.companiesRepository.findUserActiveCompany(
+      targetMembership.user.id,
+    );
+    if (user && user.activeCompanyId === companyId) {
+      await this.companiesRepository.updateUserActiveCompany(
+        targetMembership.user.id,
+        null,
+      );
     }
 
     await this.companiesRepository.deleteMember(membershipId);

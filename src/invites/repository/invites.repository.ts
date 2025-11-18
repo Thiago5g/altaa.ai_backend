@@ -30,6 +30,7 @@ export interface InviteDetails {
   companyId: string;
   role: Role;
   acceptedAt: Date | null;
+  expiresAt: Date;
 }
 
 export interface UserActiveCompany {
@@ -42,7 +43,12 @@ export class InvitesRepository {
 
   async findPendingInvitesByEmail(email: string): Promise<InviteWithCompany[]> {
     return this.prisma.invite.findMany({
-      where: { email, acceptedAt: null },
+      where: {
+        email,
+        acceptedAt: null,
+        declinedAt: null,
+        expiresAt: { gt: new Date() }, // Apenas convites não expirados
+      },
       select: {
         id: true,
         companyId: true,
@@ -78,6 +84,7 @@ export class InvitesRepository {
         companyId: true,
         role: true,
         acceptedAt: true,
+        expiresAt: true,
       },
     });
   }

@@ -20,6 +20,11 @@ describe('CompaniesService', () => {
     findCompanyById: jest.fn(),
     updateCompany: jest.fn(),
     deleteCompany: jest.fn(),
+    deleteMember: jest.fn(),
+    findMembershipById: jest.fn(),
+    findUserActiveCompany: jest.fn(),
+    findPendingInviteByEmailAndCompany: jest.fn(),
+    invalidateInvite: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -143,6 +148,9 @@ describe('CompaniesService', () => {
       mockCompaniesRepository.findMembershipByUserAndCompany.mockResolvedValue(
         mockMembership,
       );
+      mockCompaniesRepository.findPendingInviteByEmailAndCompany.mockResolvedValue(
+        null,
+      );
       mockCompaniesRepository.createInvite.mockResolvedValue(mockInvite);
 
       const result = await service.inviteToCompany(
@@ -154,6 +162,9 @@ describe('CompaniesService', () => {
       expect(
         companiesRepository.findMembershipByUserAndCompany,
       ).toHaveBeenCalledWith(requestorId, companyId);
+      expect(
+        companiesRepository.findPendingInviteByEmailAndCompany,
+      ).toHaveBeenCalledWith(createInviteDto.email, companyId);
       expect(companiesRepository.createInvite).toHaveBeenCalledWith(
         companyId,
         createInviteDto.email,
@@ -178,6 +189,9 @@ describe('CompaniesService', () => {
 
       mockCompaniesRepository.findMembershipByUserAndCompany.mockResolvedValue(
         mockMembership,
+      );
+      mockCompaniesRepository.findPendingInviteByEmailAndCompany.mockResolvedValue(
+        null,
       );
       mockCompaniesRepository.createInvite.mockResolvedValue(mockInvite);
 

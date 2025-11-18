@@ -45,9 +45,14 @@ export class InvitesService {
     const invite = await this.invitesRepository.findInviteById(inviteId);
     if (!invite) throw new NotFoundException('Invite not found');
     if (invite.acceptedAt)
-      throw new ForbiddenException('Invite not pending');
+      throw new ForbiddenException('Invite already accepted');
     if (invite.email.toLowerCase() !== user.email.toLowerCase())
       throw new ForbiddenException('Invite not for this user');
+    
+    // Verificar se o convite expirou
+    if (invite.expiresAt && new Date() > new Date(invite.expiresAt)) {
+      throw new ForbiddenException('Invite has expired');
+    }
 
     await this.invitesRepository.executeInTransaction(
       async (tx: any) => {

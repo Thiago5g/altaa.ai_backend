@@ -64,6 +64,7 @@ model Invite {
   role      Role
   acceptedAt DateTime?
   declinedAt DateTime?
+  expiresAt DateTime
   createdAt DateTime @default(now())
   company   Company  @relation(fields: [companyId], references: [id])
 

@@ -109,15 +109,18 @@ export class CompaniesRepository {
     role: Role,
     token: string,
   ): Promise<InviteCreated> {
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7); // Expira em 7 dias
+
     return this.prisma.invite.create({
-      data: { companyId, email, role, token },
+      data: { companyId, email, role, token, expiresAt },
       select: { id: true, token: true },
     });
   }
 
   async updateUserActiveCompany(
     userId: string,
-    companyId: string,
+    companyId: string | null,
   ): Promise<void> {
     await this.prisma.user.update({
       where: { id: userId },
@@ -179,6 +182,39 @@ export class CompaniesRepository {
         createdAt: true,
         user: { select: { id: true, name: true, email: true } },
       },
+    });
+  }
+
+  async findUserActiveCompany(
+    userId: string,
+  ): Promise<{ activeCompanyId: string | null } | null> {
+    return this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { activeCompanyId: true },
+    });
+  }
+
+  async findPendingInviteByEmailAndCompany(
+    email: string,
+    companyId: string,
+  ): Promise<{ id: string; expiresAt: Date } | null> {
+    return this.prisma.invite.findFirst({
+      where: {
+        email,
+        companyId,
+        acceptedAt: null,
+        declinedAt: null,
+        expiresAt: { gt: new Date() },
+      },
+      select: { id: true, expiresAt: true },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async invalidateInvite(inviteId: string): Promise<void> {
+    await this.prisma.invite.update({
+      where: { id: inviteId },
+      data: { declinedAt: new Date() },
     });
   }
 }

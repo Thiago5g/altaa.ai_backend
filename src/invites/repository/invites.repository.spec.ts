@@ -66,7 +66,12 @@ describe('InvitesRepository', () => {
       const result = await repository.findPendingInvitesByEmail(email);
 
       expect(prismaService.invite.findMany).toHaveBeenCalledWith({
-        where: { email, acceptedAt: null },
+        where: {
+          email,
+          acceptedAt: null,
+          declinedAt: null,
+          expiresAt: { gt: expect.any(Date) as Date },
+        },
         select: {
           id: true,
           companyId: true,
@@ -162,6 +167,7 @@ describe('InvitesRepository', () => {
           companyId: true,
           role: true,
           acceptedAt: true,
+          expiresAt: true,
         },
       });
       expect(result).toEqual(mockInvite);

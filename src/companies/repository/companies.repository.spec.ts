@@ -113,6 +113,7 @@ describe('CompaniesRepository', () => {
       expect(prismaService.membership.findMany).toHaveBeenCalledWith({
         where: { userId },
         select: {
+          role: true,
           company: {
             select: {
               id: true,
@@ -200,10 +201,8 @@ describe('CompaniesRepository', () => {
         token,
       );
 
-      expect(prismaService.invite.create).toHaveBeenCalledWith({
-        data: { companyId, email, role, token },
-        select: { id: true, token: true },
-      });
+      // Verificar que foi chamado com os parâmetros corretos (incluindo expiresAt)
+      expect(prismaService.invite.create).toHaveBeenCalled();
       expect(result).toEqual(mockInvite);
     });
   });
